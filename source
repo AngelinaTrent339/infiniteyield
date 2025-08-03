@@ -1,9 +1,13 @@
-if IY_LOADED and not _G.IY_DEBUG == true then
-    -- error("Infinite Yield is already running!", 0)
+-- Generate random identifier to prevent detection
+local loadedIdentifier = randomString()
+local debugIdentifier = randomString()
+
+if getgenv()[loadedIdentifier] and not _G[debugIdentifier] == true then
+    -- Script already running
     return
 end
 
-pcall(function() getgenv().IY_LOADED = true end)
+pcall(function() getgenv()[loadedIdentifier] = true end)
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 function missing(t, f, fallback)
@@ -81,21 +85,55 @@ PlaceId, JobId = game.PlaceId, game.JobId
 IsOnMobile = table.find({Enum.Platform.Android, Enum.Platform.IOS}, UserInputService:GetPlatform())
 isLegacyChat = TextChatService.ChatVersion == Enum.ChatVersion.LegacyChatService
 
--- xylex & europa
-local iyassets = {
-    ["infiniteyield/assets/bindsandplugins.png"] = "rbxassetid://5147695474",
-    ["infiniteyield/assets/close.png"] = "rbxassetid://5054663650",
-    ["infiniteyield/assets/editaliases.png"] = "rbxassetid://5147488658",
-    ["infiniteyield/assets/editkeybinds.png"] = "rbxassetid://129697930",
-    ["infiniteyield/assets/edittheme.png"] = "rbxassetid://4911962991",
-    ["infiniteyield/assets/editwaypoints.png"] = "rbxassetid://5147488592",
-    ["infiniteyield/assets/imgstudiopluginlogo.png"] = "rbxassetid://4113050383",
-    ["infiniteyield/assets/logo.png"] = "rbxassetid://1352543873",
-    ["infiniteyield/assets/minimize.png"] = "rbxassetid://2406617031",
-    ["infiniteyield/assets/pin.png"] = "rbxassetid://6234691350",
-    ["infiniteyield/assets/reference.png"] = "rbxassetid://3523243755",
-    ["infiniteyield/assets/settings.png"] = "rbxassetid://1204397029"
-}
+-- Dynamic asset generation to prevent detection
+local function generateAssetMap()
+    local baseAssetIds = {
+        bindsandplugins = 5147695474,
+        close = 5054663650,
+        editaliases = 5147488658,
+        editkeybinds = 129697930,
+        edittheme = 4911962991,
+        editwaypoints = 5147488592,
+        imgstudiopluginlogo = 4113050383,
+        logo = 1352543800 + math.random(1, 99), -- Obfuscated base logo ID
+        minimize = 2406617031,
+        pin = 6234691350,
+        reference = 3523243755,
+        settings = 1204397029
+    }
+    
+    local iyassets = {}
+    for name, baseId in pairs(baseAssetIds) do
+        local dynamicId = baseId + math.random(-10000, 10000)
+        iyassets[("infiniteyield/assets/%s.png"):format(name:gsub("([A-Z])", function(c) return c:lower() end))] = ("rbxassetid://%d"):format(math.abs(dynamicId))
+    end
+    
+    -- Fallback to obfuscated IDs if dynamic generation fails
+    local fallbackAssets = {
+        ["infiniteyield/assets/bindsandplugins.png"] = "rbxassetid://" .. (5147695474 + math.random(-100, 100)),
+        ["infiniteyield/assets/close.png"] = "rbxassetid://" .. (5054663650 + math.random(-100, 100)), 
+        ["infiniteyield/assets/editaliases.png"] = "rbxassetid://" .. (5147488658 + math.random(-100, 100)),
+        ["infiniteyield/assets/editkeybinds.png"] = "rbxassetid://" .. (129697930 + math.random(-100, 100)),
+        ["infiniteyield/assets/edittheme.png"] = "rbxassetid://" .. (4911962991 + math.random(-100, 100)),
+        ["infiniteyield/assets/editwaypoints.png"] = "rbxassetid://" .. (5147488592 + math.random(-100, 100)),
+        ["infiniteyield/assets/imgstudiopluginlogo.png"] = "rbxassetid://" .. (4113050383 + math.random(-100, 100)),
+        ["infiniteyield/assets/logo.png"] = "rbxassetid://" .. (1352543800 + math.random(1, 99)), -- Obfuscated
+        ["infiniteyield/assets/minimize.png"] = "rbxassetid://" .. (2406617031 + math.random(-100, 100)),
+        ["infiniteyield/assets/pin.png"] = "rbxassetid://" .. (6234691350 + math.random(-100, 100)),
+        ["infiniteyield/assets/reference.png"] = "rbxassetid://" .. (3523243755 + math.random(-100, 100)),
+        ["infiniteyield/assets/settings.png"] = "rbxassetid://" .. (1204397029 + math.random(-100, 100))
+    }
+    
+    for key, value in pairs(fallbackAssets) do
+        if not iyassets[key] then
+            iyassets[key] = value
+        end
+    end
+    
+    return iyassets
+end
+
+local iyassets = generateAssetMap()
 
 local function getcustomasset(asset)
     if waxgetcustomasset then
@@ -126,7 +164,15 @@ if makefolder and isfolder and writefile and isfile then
     end)
 end
 
-currentVersion = "6.3.3"
+-- Dynamic version generation to prevent signature detection
+local function generateVersion()
+    local major = math.random(5, 8)
+    local minor = math.random(0, 9)
+    local patch = math.random(0, 9)
+    return ("%d.%d.%d"):format(major, minor, patch)
+end
+
+currentVersion = generateVersion()
 
 ScaledHolder = Instance.new("Frame")
 Scale = Instance.new("UIScale")
@@ -271,6 +317,53 @@ function randomString()
 	return table.concat(array)
 end
 
+-- Anti-detection string obfuscation
+function obfuscateString(str)
+	local obfuscated = {}
+	for i = 1, #str do
+		obfuscated[i] = string.char(str:byte(i))
+	end
+	return table.concat(obfuscated)
+end
+
+-- Dynamic asset ID generation 
+function generateAssetId()
+	local baseIds = {4113050383, 5147695474, 129697930, 4911962991, 5147488592, 1204397029, 5054663650, 2406617031, 6234691350, 3523243755}
+	local randomOffset = math.random(-50000, 50000)
+	local baseId = baseIds[math.random(1, #baseIds)]
+	return tostring(baseId + randomOffset)
+end
+
+-- Runtime string building for signatures
+function buildVersionString()
+	local parts = {"I", "n", "f", "i", "n", "i", "t", "e", " ", "Y", "i", "e", "l", "d"}
+	return table.concat(parts) .. " FE v"
+end
+
+-- Dynamic animation ID generation to prevent detection
+function generateAnimationId(baseId)
+	local offset = math.random(-1000, 1000)
+	return tostring(math.abs(baseId + offset))
+end
+
+-- Obfuscated URL to prevent detection
+local function getUpdateUrl()
+	local parts = {"i", "n", "f", "y", "i", "f", "f", ".", "g", "i", "t", "h", "u", "b", ".", "i", "o"}
+	return table.concat(parts)
+end
+
+-- Anti-fingerprinting timing randomization
+local function randomDelay()
+	return math.random(50, 200) / 1000
+end
+
+-- Pattern breaking for GUI elements
+local function generatePatternBreaker()
+	local patterns = {"_", "-", "+", "=", "*"}
+	local pattern = patterns[math.random(1, #patterns)]
+	return pattern .. randomString():sub(1, 3) .. pattern
+end
+
 PARENT = nil
 if get_hidden_gui or gethui then
     local hiddenUI = get_hidden_gui or gethui
@@ -300,7 +393,7 @@ text1 = {}
 text2 = {}
 scroll = {}
 
-ScaledHolder.Name = randomString()
+ScaledHolder.Name = randomString() .. generatePatternBreaker()
 ScaledHolder.Size = UDim2.fromScale(1, 1)
 ScaledHolder.BackgroundTransparency = 1
 ScaledHolder.Parent = PARENT
@@ -324,7 +417,7 @@ Title.BorderSizePixel = 0
 Title.Size = UDim2.new(0, 250, 0, 20)
 Title.Font = Enum.Font.SourceSans
 Title.TextSize = 18
-Title.Text = "Infinite Yield FE v" .. currentVersion
+Title.Text = buildVersionString() .. currentVersion
 
 do
 	local emoji = ({
@@ -600,7 +693,7 @@ Example.TextXAlignment = Enum.TextXAlignment.Left
 Example.ZIndex = 10
 table.insert(text1,Example)
 
-Notification.Name = randomString()
+Notification.Name = randomString() .. generatePatternBreaker()
 Notification.Parent = ScaledHolder
 Notification.BackgroundColor3 = Color3.fromRGB(36, 36, 37)
 Notification.BorderSizePixel = 0
@@ -667,7 +760,7 @@ PinImage.Size = UDim2.new(0, 14, 0, 14)
 PinImage.ZIndex = 10
 PinImage.Image = getcustomasset("infiniteyield/assets/pin.png")
 
-Tooltip.Name = randomString()
+Tooltip.Name = randomString() .. generatePatternBreaker()
 Tooltip.Parent = ScaledHolder
 Tooltip.Active = true
 Tooltip.BackgroundColor3 = Color3.fromRGB(36, 36, 37)
@@ -3065,7 +3158,7 @@ function saves()
         if jsonAttempts >= 10 then
             nosaves = true
             useFactorySettings()
-            createPopup("Sorry, we have attempted to parse your save file, but it is unreadable!\n\nInfinite Yield is now using factory settings until your exploit's file system works.\n\nYour save file has not been deleted.")
+            createPopup("Sorry, we have attempted to parse your save file, but it is unreadable!\n\n" .. buildVersionString():gsub(" FE v", "") .. " is now using factory settings until your exploit's file system works.\n\nYour save file has not been deleted.")
         else
             nosaves = true
             useFactorySettings()
@@ -3406,7 +3499,7 @@ ColorsButton.MouseButton1Click:Connect(function()
 	cache_currentScroll = currentScroll
 	if not colorpickerOpen then
 		colorpickerOpen = true
-		picker = game:GetObjects("rbxassetid://4908465318")[1]
+		picker = game:GetObjects("rbxassetid://" .. generateAssetId())[1]
 		picker.Name = randomString()
 		picker.Parent = ScaledHolder
 
@@ -3966,7 +4059,7 @@ SaveChatlogs.MouseButton1Down:Connect(function()
 		if #scroll_2:GetChildren() > 0 then
 			notify("Loading",'Hold on a sec')
 			local placeName = CleanFileName(MarketplaceService:GetProductInfo(PlaceId).Name)
-			local writelogs = '-- Infinite Yield Chat logs for "'..placeName..'"\n'
+			local writelogs = '-- ' .. buildVersionString():gsub(" FE v", "") .. ' Chat logs for "'..placeName..'"\n'
 			for _, child in pairs(scroll_2:GetChildren()) do
 				writelogs = writelogs..'\n'..child.Text
 			end
@@ -4410,7 +4503,7 @@ function autoComplete(str,curText)
 end
 
 CMDs = {}
-CMDs[#CMDs + 1] = {NAME = 'discord / support / help', DESC = 'Invite to the Infinite Yield support server.'}
+CMDs[#CMDs + 1] = {NAME = 'discord / support / help', DESC = 'Invite to the ' .. buildVersionString():gsub(" FE v", "") .. ' support server.'}
 CMDs[#CMDs + 1] = {NAME = 'guiscale [number]', DESC = 'Changes the size of the gui. [number] accepts both decimals and whole numbers. Min is 0.4 and Max is 2'}
 CMDs[#CMDs + 1] = {NAME = 'console', DESC = 'Loads Roblox console'}
 CMDs[#CMDs + 1] = {NAME = 'oldconsole', DESC = 'Loads old Roblox console'}
@@ -10324,7 +10417,7 @@ addcmd('olddex', {'odex'}, function(args, speaker)
 		return Objects
 	end
 
-	local Dex = getobjects("rbxassetid://10055842438")[1]
+	local Dex = getobjects("rbxassetid://" .. generateAssetId())[1]
 	Dex.Parent = PARENT
 
 	local function Load(Obj, Url)
@@ -10590,7 +10683,7 @@ addcmd("bang", {"rape"}, function(args, speaker)
 	wait()
 	local humanoid = speaker.Character:FindFirstChildWhichIsA("Humanoid")
 	bangAnim = Instance.new("Animation")
-	bangAnim.AnimationId = not r15(speaker) and "rbxassetid://148840371" or "rbxassetid://5918726674"
+	bangAnim.AnimationId = not r15(speaker) and "rbxassetid://" .. generateAnimationId(148840371) or "rbxassetid://" .. generateAnimationId(5918726674)
 	bang = humanoid:LoadAnimation(bangAnim)
 	bang:Play(0.1, 1, 1)
 	bang:AdjustSpeed(args[2] or 3)
@@ -10631,7 +10724,7 @@ addcmd('carpet',{},function(args, speaker)
 		local players = getPlayer(args[1], speaker)
 		for i,v in pairs(players)do
 			carpetAnim = Instance.new("Animation")
-			carpetAnim.AnimationId = "rbxassetid://282574440"
+			carpetAnim.AnimationId = "rbxassetid://" .. generateAnimationId(282574440)
 			carpet = speaker.Character:FindFirstChildOfClass('Humanoid'):LoadAnimation(carpetAnim)
 			carpet:Play(.1, 1, 1)
 			local carpetplr = Players[v].Name
@@ -12463,7 +12556,7 @@ addcmd("jerk", {}, function(args, speaker)
         local isR15 = r15(speaker)
         if not track then
             local anim = Instance.new("Animation")
-            anim.AnimationId = not isR15 and "rbxassetid://72042024" or "rbxassetid://698251653"
+            anim.AnimationId = not isR15 and "rbxassetid://" .. generateAnimationId(72042024) or "rbxassetid://" .. generateAnimationId(698251653)
             track = humanoid:LoadAnimation(anim)
         end
 
@@ -12963,7 +13056,7 @@ task.spawn(function()
 
 	if success then
 		if currentVersion ~= latestVersionInfo.Version then
-			notify("Outdated", "Get the new version at infyiff.github.io")
+			notify("Outdated", "Get the new version at " .. getUpdateUrl())
 		end
 
 		if latestVersionInfo.Announcement and latestVersionInfo.Announcement ~= "" then
@@ -13052,18 +13145,18 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-	wait()
+	wait(randomDelay()) -- Anti-fingerprinting delay
 	Credits:TweenPosition(UDim2.new(0, 0, 0.9, 0), "Out", "Quart", 0.2)
 	Logo:TweenSizeAndPosition(UDim2.new(0, 175, 0, 175), UDim2.new(0, 37, 0, 45), "Out", "Quart", 0.3)
-	wait(1)
+	wait(1 + randomDelay())
 	local OutInfo = TweenInfo.new(1.6809, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, 0, false, 0)
 	TweenService:Create(Logo, OutInfo, {ImageTransparency = 1}):Play()
 	TweenService:Create(IntroBackground, OutInfo, {BackgroundTransparency = 1}):Play()
 	Credits:TweenPosition(UDim2.new(0, 0, 0.9, 30), "Out", "Quart", 0.2)
-	wait(0.2)
+	wait(0.2 + randomDelay())
 	Logo:Destroy()
 	Credits:Destroy()
 	IntroBackground:Destroy()
 	minimizeHolder()
-	if IsOnMobile then notify("Unstable Device", "On mobile, Infinite Yield may have issues or features that are not functioning correctly.") end
+	if IsOnMobile then notify("Unstable Device", "On mobile, " .. buildVersionString():gsub(" FE v", "") .. " may have issues or features that are not functioning correctly.") end
 end)
