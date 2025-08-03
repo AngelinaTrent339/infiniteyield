@@ -1,6 +1,36 @@
--- Generate random identifier to prevent detection
-local loadedIdentifier = randomString()
-local debugIdentifier = randomString()
+-- Random string generator function - moved to top to fix execution error
+function randomString()
+	local length = math.random(10,20)
+	local array = {}
+	for i = 1, length do
+		array[i] = string.char(math.random(32, 126))
+	end
+	return table.concat(array)
+end
+
+-- Validation function to ensure critical dependencies are available
+local function validateDependencies()
+	local success, error = pcall(function()
+		-- Test that math functions work
+		local test = math.random(1, 10)
+		-- Test that string functions work  
+		local testStr = string.char(65)
+		-- Test that table functions work
+		local testTable = table.concat({"test"})
+	end)
+	return success
+end
+
+-- Generate random identifier to prevent detection with error handling
+local loadedIdentifier, debugIdentifier
+if validateDependencies() then
+	loadedIdentifier = randomString()
+	debugIdentifier = randomString()
+else
+	-- Fallback identifiers if validation fails
+	loadedIdentifier = "iy_loaded_" .. tostring(os.time() or 0)
+	debugIdentifier = "iy_debug_" .. tostring(os.time() or 0)
+end
 
 if getgenv()[loadedIdentifier] and not _G[debugIdentifier] == true then
     -- Script already running
@@ -87,22 +117,23 @@ isLegacyChat = TextChatService.ChatVersion == Enum.ChatVersion.LegacyChatService
 
 -- Dynamic asset generation to prevent detection
 local function generateAssetMap()
-    local baseAssetIds = {
-        bindsandplugins = 5147695474,
-        close = 5054663650,
-        editaliases = 5147488658,
-        editkeybinds = 129697930,
-        edittheme = 4911962991,
-        editwaypoints = 5147488592,
-        imgstudiopluginlogo = 4113050383,
-        logo = 1352543800 + math.random(1, 99), -- Obfuscated base logo ID
-        minimize = 2406617031,
-        pin = 6234691350,
-        reference = 3523243755,
-        settings = 1204397029
-    }
-    
-    local iyassets = {}
+    local success, result = pcall(function()
+        local baseAssetIds = {
+            bindsandplugins = 5147695474,
+            close = 5054663650,
+            editaliases = 5147488658,
+            editkeybinds = 129697930,
+            edittheme = 4911962991,
+            editwaypoints = 5147488592,
+            imgstudiopluginlogo = 4113050383,
+            logo = 1352543800 + math.random(1, 99), -- Obfuscated base logo ID
+            minimize = 2406617031,
+            pin = 6234691350,
+            reference = 3523243755,
+            settings = 1204397029
+        }
+        
+        local iyassets = {}
     for name, baseId in pairs(baseAssetIds) do
         local dynamicId = baseId + math.random(-10000, 10000)
         iyassets[("infiniteyield/assets/%s.png"):format(name:gsub("([A-Z])", function(c) return c:lower() end))] = ("rbxassetid://%d"):format(math.abs(dynamicId))
@@ -130,7 +161,28 @@ local function generateAssetMap()
         end
     end
     
-    return iyassets
+        return iyassets
+    end)
+    
+    if success then
+        return result
+    else
+        -- Fallback asset map if generation fails
+        return {
+            ["infiniteyield/assets/bindsandplugins.png"] = "rbxassetid://5147695474",
+            ["infiniteyield/assets/close.png"] = "rbxassetid://5054663650", 
+            ["infiniteyield/assets/editaliases.png"] = "rbxassetid://5147488658",
+            ["infiniteyield/assets/editkeybinds.png"] = "rbxassetid://129697930",
+            ["infiniteyield/assets/edittheme.png"] = "rbxassetid://4911962991",
+            ["infiniteyield/assets/editwaypoints.png"] = "rbxassetid://5147488592",
+            ["infiniteyield/assets/imgstudiopluginlogo.png"] = "rbxassetid://4113050383",
+            ["infiniteyield/assets/logo.png"] = "rbxassetid://1352543899", -- Static fallback
+            ["infiniteyield/assets/minimize.png"] = "rbxassetid://2406617031",
+            ["infiniteyield/assets/pin.png"] = "rbxassetid://6234691350",
+            ["infiniteyield/assets/reference.png"] = "rbxassetid://3523243755",
+            ["infiniteyield/assets/settings.png"] = "rbxassetid://1204397029"
+        }
+    end
 end
 
 local iyassets = generateAssetMap()
@@ -166,10 +218,19 @@ end
 
 -- Dynamic version generation to prevent signature detection
 local function generateVersion()
-    local major = math.random(5, 8)
-    local minor = math.random(0, 9)
-    local patch = math.random(0, 9)
-    return ("%d.%d.%d"):format(major, minor, patch)
+    local success, version = pcall(function()
+        local major = math.random(5, 8)
+        local minor = math.random(0, 9)
+        local patch = math.random(0, 9)
+        return ("%d.%d.%d"):format(major, minor, patch)
+    end)
+    
+    if success then
+        return version
+    else
+        -- Fallback version if generation fails
+        return "6.3.3"
+    end
 end
 
 currentVersion = generateVersion()
@@ -307,15 +368,6 @@ scroll_3 = Instance.new("ScrollingFrame")
 listlayout = Instance.new("UIListLayout",scroll_3)
 selectChat = Instance.new("TextButton")
 selectJoin = Instance.new("TextButton")
-
-function randomString()
-	local length = math.random(10,20)
-	local array = {}
-	for i = 1, length do
-		array[i] = string.char(math.random(32, 126))
-	end
-	return table.concat(array)
-end
 
 -- Anti-detection string obfuscation
 function obfuscateString(str)
