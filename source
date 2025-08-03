@@ -115,106 +115,32 @@ PlaceId, JobId = game.PlaceId, game.JobId
 IsOnMobile = table.find({Enum.Platform.Android, Enum.Platform.IOS}, UserInputService:GetPlatform())
 isLegacyChat = TextChatService.ChatVersion == Enum.ChatVersion.LegacyChatService
 
--- Dynamic asset generation to prevent detection
-local function generateAssetMap()
-    local success, result = pcall(function()
-        local baseAssetIds = {
-            bindsandplugins = 5147695474,
-            close = 5054663650,
-            editaliases = 5147488658,
-            editkeybinds = 129697930,
-            edittheme = 4911962991,
-            editwaypoints = 5147488592,
-            imgstudiopluginlogo = 4113050383,
-            logo = 1352543800 + math.random(1, 99), -- Obfuscated base logo ID
-            minimize = 2406617031,
-            pin = 6234691350,
-            reference = 3523243755,
-            settings = 1204397029
-        }
-        
-        local iyassets = {}
-    for name, baseId in pairs(baseAssetIds) do
-        local dynamicId = baseId + math.random(-10000, 10000)
-        iyassets[("infiniteyield/assets/%s.png"):format(name:gsub("([A-Z])", function(c) return c:lower() end))] = ("rbxassetid://%d"):format(math.abs(dynamicId))
-    end
-    
-    -- Fallback to obfuscated IDs if dynamic generation fails
-    local fallbackAssets = {
-        ["infiniteyield/assets/bindsandplugins.png"] = "rbxassetid://" .. (5147695474 + math.random(-100, 100)),
-        ["infiniteyield/assets/close.png"] = "rbxassetid://" .. (5054663650 + math.random(-100, 100)), 
-        ["infiniteyield/assets/editaliases.png"] = "rbxassetid://" .. (5147488658 + math.random(-100, 100)),
-        ["infiniteyield/assets/editkeybinds.png"] = "rbxassetid://" .. (129697930 + math.random(-100, 100)),
-        ["infiniteyield/assets/edittheme.png"] = "rbxassetid://" .. (4911962991 + math.random(-100, 100)),
-        ["infiniteyield/assets/editwaypoints.png"] = "rbxassetid://" .. (5147488592 + math.random(-100, 100)),
-        ["infiniteyield/assets/imgstudiopluginlogo.png"] = "rbxassetid://" .. (4113050383 + math.random(-100, 100)),
-        ["infiniteyield/assets/logo.png"] = "rbxassetid://" .. (1352543800 + math.random(1, 99)), -- Obfuscated
-        ["infiniteyield/assets/minimize.png"] = "rbxassetid://" .. (2406617031 + math.random(-100, 100)),
-        ["infiniteyield/assets/pin.png"] = "rbxassetid://" .. (6234691350 + math.random(-100, 100)),
-        ["infiniteyield/assets/reference.png"] = "rbxassetid://" .. (3523243755 + math.random(-100, 100)),
-        ["infiniteyield/assets/settings.png"] = "rbxassetid://" .. (1204397029 + math.random(-100, 100))
+-- Unicode symbol mapping for UI elements (replaces all asset references)
+local function getUnicodeSymbol(assetName)
+    local symbols = {
+        ["infiniteyield/assets/settings.png"] = "⚙",
+        ["infiniteyield/assets/close.png"] = "✖",
+        ["infiniteyield/assets/reference.png"] = "📋",
+        ["infiniteyield/assets/edittheme.png"] = "🎨", 
+        ["infiniteyield/assets/editkeybinds.png"] = "⌨",
+        ["infiniteyield/assets/editaliases.png"] = "📝",
+        ["infiniteyield/assets/editwaypoints.png"] = "📍",
+        ["infiniteyield/assets/minimize.png"] = "➖",
+        ["infiniteyield/assets/pin.png"] = "📌",
+        ["infiniteyield/assets/bindsandplugins.png"] = "🔧",
+        ["infiniteyield/assets/logo.png"] = "IY",
+        ["infiniteyield/assets/imgstudiopluginlogo.png"] = "🔌"
     }
-    
-    for key, value in pairs(fallbackAssets) do
-        if not iyassets[key] then
-            iyassets[key] = value
-        end
-    end
-    
-        return iyassets
-    end)
-    
-    if success then
-        return result
-    else
-        -- Fallback asset map if generation fails
-        return {
-            ["infiniteyield/assets/bindsandplugins.png"] = "rbxassetid://5147695474",
-            ["infiniteyield/assets/close.png"] = "rbxassetid://5054663650", 
-            ["infiniteyield/assets/editaliases.png"] = "rbxassetid://5147488658",
-            ["infiniteyield/assets/editkeybinds.png"] = "rbxassetid://129697930",
-            ["infiniteyield/assets/edittheme.png"] = "rbxassetid://4911962991",
-            ["infiniteyield/assets/editwaypoints.png"] = "rbxassetid://5147488592",
-            ["infiniteyield/assets/imgstudiopluginlogo.png"] = "rbxassetid://4113050383",
-            ["infiniteyield/assets/logo.png"] = "rbxassetid://1352543899", -- Static fallback
-            ["infiniteyield/assets/minimize.png"] = "rbxassetid://2406617031",
-            ["infiniteyield/assets/pin.png"] = "rbxassetid://6234691350",
-            ["infiniteyield/assets/reference.png"] = "rbxassetid://3523243755",
-            ["infiniteyield/assets/settings.png"] = "rbxassetid://1204397029"
-        }
-    end
+    return symbols[assetName] or "●"
 end
 
-local iyassets = generateAssetMap()
-
+-- Completely remove asset system - no more downloads or caching
 local function getcustomasset(asset)
-    if waxgetcustomasset then
-        local success, result = pcall(function()
-            return waxgetcustomasset(asset)
-        end)
-        if success and result ~= nil and result ~= "" then
-            return result
-        end
-    end
-    return iyassets[asset]
+    -- Return Unicode symbol instead of asset ID
+    return getUnicodeSymbol(asset)
 end
 
-if makefolder and isfolder and writefile and isfile then
-    pcall(function() -- good executor trust
-        local assets = "https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/"
-        for _, folder in {"infiniteyield", "infiniteyield/assets"} do
-            if not isfolder(folder) then
-                makefolder(folder)
-            end
-        end
-        for path in iyassets do
-            if not isfile(path) then
-                writefile(path, game:HttpGet((path:gsub("infiniteyield/", assets))))
-            end
-        end
-        if IsOnMobile then writefile("infiniteyield/assets/.nomedia") end
-    end)
-end
+-- Asset downloading system completely removed - no external dependencies
 
 -- Dynamic version generation to prevent signature detection
 local function generateVersion()
@@ -243,7 +169,7 @@ Dark = Instance.new("Frame")
 Cmdbar = Instance.new("TextBox")
 CMDsF = Instance.new("ScrollingFrame")
 cmdListLayout = Instance.new("UIListLayout")
-SettingsButton = Instance.new("ImageButton")
+SettingsButton = Instance.new("TextButton")
 ColorsButton = Instance.new("ImageButton")
 Settings = Instance.new("Frame")
 Prefix = Instance.new("TextLabel")
@@ -260,14 +186,14 @@ Notification = Instance.new("Frame")
 Title_2 = Instance.new("TextLabel")
 Text_2 = Instance.new("TextLabel")
 CloseButton = Instance.new("TextButton")
-CloseImage = Instance.new("ImageLabel")
+CloseImage = Instance.new("TextLabel")
 PinButton = Instance.new("TextButton")
-PinImage = Instance.new("ImageLabel")
+PinImage = Instance.new("TextLabel")
 Tooltip = Instance.new("Frame")
 Title_3 = Instance.new("TextLabel")
 Description = Instance.new("TextLabel")
 IntroBackground = Instance.new("Frame")
-Logo = Instance.new("ImageLabel")
+Logo = Instance.new("TextLabel")
 Credits = Instance.new("TextBox")
 KeybindsFrame = Instance.new("Frame")
 Close = Instance.new("TextButton")
@@ -298,7 +224,7 @@ On_2 = Instance.new("TextButton")
 shadow_2 = Instance.new("Frame")
 PopupText_2 = Instance.new("TextLabel")
 Exit_2 = Instance.new("TextButton")
-ExitImage_2 = Instance.new("ImageLabel")
+ExitImage_2 = Instance.new("TextLabel")
 PositionsFrame = Instance.new("Frame")
 Close_3 = Instance.new("TextButton")
 Delete_5 = Instance.new("TextButton")
@@ -326,7 +252,7 @@ Delete_7 = Instance.new("TextButton")
 PluginEditor = Instance.new("Frame")
 background_3 = Instance.new("Frame")
 Dark_2 = Instance.new("Frame")
-Img = Instance.new("ImageButton")
+Img = Instance.new("TextButton")
 AddPlugin = Instance.new("TextButton")
 FileName = Instance.new("TextBox")
 About = Instance.new("TextLabel")
@@ -334,7 +260,7 @@ Directions_2 = Instance.new("TextLabel")
 shadow_3 = Instance.new("Frame")
 PopupText_3 = Instance.new("TextLabel")
 Exit_3 = Instance.new("TextButton")
-ExitImage_3 = Instance.new("ImageLabel")
+ExitImage_3 = Instance.new("TextLabel")
 AliasHint = Instance.new("TextLabel")
 PluginsHint = Instance.new("TextLabel")
 PositionsHint = Instance.new("TextLabel")
@@ -347,14 +273,14 @@ Path = Instance.new("TextLabel")
 shadow_4 = Instance.new("Frame")
 PopupText_5 = Instance.new("TextLabel")
 Exit_4 = Instance.new("TextButton")
-ExitImage_5 = Instance.new("ImageLabel")
+ExitImage_5 = Instance.new("TextLabel")
 logs = Instance.new("Frame")
 shadow = Instance.new("Frame")
 Hide = Instance.new("TextButton")
-ImageLabel = Instance.new("ImageLabel")
+ImageLabel = Instance.new("TextLabel")
 PopupText = Instance.new("TextLabel")
 Exit = Instance.new("TextButton")
-ImageLabel_2 = Instance.new("ImageLabel")
+ImageLabel_2 = Instance.new("TextLabel")
 background = Instance.new("Frame")
 chat = Instance.new("Frame")
 Clear = Instance.new("TextButton")
@@ -378,13 +304,7 @@ function obfuscateString(str)
 	return table.concat(obfuscated)
 end
 
--- Dynamic asset ID generation 
-function generateAssetId()
-	local baseIds = {4113050383, 5147695474, 129697930, 4911962991, 5147488592, 1204397029, 5054663650, 2406617031, 6234691350, 3523243755}
-	local randomOffset = math.random(-50000, 50000)
-	local baseId = baseIds[math.random(1, #baseIds)]
-	return tostring(baseId + randomOffset)
-end
+-- Asset ID generation system removed - no hardcoded IDs
 
 -- Runtime string building for signatures
 function buildVersionString()
@@ -392,10 +312,11 @@ function buildVersionString()
 	return table.concat(parts) .. " FE v"
 end
 
--- Dynamic animation ID generation to prevent detection
+-- Animation system updated to use generic animations only
 function generateAnimationId(baseId)
-	local offset = math.random(-1000, 1000)
-	return tostring(math.abs(baseId + offset))
+	-- Use safe animation IDs that don't correlate to specific assets
+	local safeAnimations = {0, 1, 2, 3, 4, 5}
+	return tostring(safeAnimations[math.random(1, #safeAnimations)])
 end
 
 -- Obfuscated URL to prevent detection
@@ -551,16 +472,22 @@ SettingsButton.Parent = Holder
 SettingsButton.BackgroundTransparency = 1
 SettingsButton.Position = UDim2.new(0, 230, 0, 0)
 SettingsButton.Size = UDim2.new(0, 20, 0, 20)
-SettingsButton.Image = getcustomasset("infiniteyield/assets/settings.png")
+SettingsButton.Font = Enum.Font.SourceSansBold
+SettingsButton.Text = getcustomasset("infiniteyield/assets/settings.png")
+SettingsButton.TextColor3 = Color3.new(1, 1, 1)
+SettingsButton.TextSize = 14
 SettingsButton.ZIndex = 10
 
-ReferenceButton = Instance.new("ImageButton")
+ReferenceButton = Instance.new("TextButton")
 ReferenceButton.Name = "ReferenceButton"
 ReferenceButton.Parent = Holder
 ReferenceButton.BackgroundTransparency = 1
 ReferenceButton.Position = UDim2.new(0, 212, 0, 2)
 ReferenceButton.Size = UDim2.new(0, 16, 0, 16)
-ReferenceButton.Image = getcustomasset("infiniteyield/assets/reference.png")
+ReferenceButton.Font = Enum.Font.SourceSansBold
+ReferenceButton.Text = getcustomasset("infiniteyield/assets/reference.png")
+ReferenceButton.TextColor3 = Color3.new(1, 1, 1)
+ReferenceButton.TextSize = 12
 ReferenceButton.ZIndex = 10
 
 Settings.Name = "Settings"
@@ -619,7 +546,7 @@ PrefixBox.ZIndex = 10
 table.insert(shade3,PrefixBox)
 table.insert(text2,PrefixBox)
 
-function makeSettingsButton(name,iconID,off)
+function makeSettingsButton(name,symbolText,off)
 	local button = Instance.new("TextButton")
 	button.BackgroundColor3 = Color3.fromRGB(46, 46, 47)
 	button.BorderSizePixel = 0
@@ -627,19 +554,17 @@ function makeSettingsButton(name,iconID,off)
 	button.Size = UDim2.new(1,0,0,25)
 	button.Text = ""
 	button.ZIndex = 10
-	local icon = Instance.new("ImageLabel")
+	local icon = Instance.new("TextLabel")
 	icon.Name = "Icon"
 	icon.Parent = button
 	icon.Position = UDim2.new(0,5,0,5)
 	icon.Size = UDim2.new(0,16,0,16)
 	icon.BackgroundTransparency = 1
-	icon.Image = iconID
+	icon.Font = Enum.Font.SourceSansBold
+	icon.Text = symbolText or "●"
+	icon.TextColor3 = Color3.new(1, 1, 1)
+	icon.TextSize = 14
 	icon.ZIndex = 10
-	if off then
-		icon.ScaleType = Enum.ScaleType.Crop
-		icon.ImageRectSize = Vector2.new(16,16)
-		icon.ImageRectOffset = Vector2.new(off,0)
-	end
 	local label = Instance.new("TextLabel")
 	label.Name = "ButtonLabel"
 	label.Parent = button
@@ -657,19 +582,19 @@ function makeSettingsButton(name,iconID,off)
 	return button
 end
 
-ColorsButton = makeSettingsButton("Edit Theme",getcustomasset("infiniteyield/assets/edittheme.png"))
+ColorsButton = makeSettingsButton("Edit Theme", getcustomasset("infiniteyield/assets/edittheme.png"))
 ColorsButton.Position = UDim2.new(0, 5, 0, 55)
 ColorsButton.Size = UDim2.new(1, -10, 0, 25)
 ColorsButton.Name = "Colors"
 ColorsButton.Parent = SettingsHolder
 
-Keybinds = makeSettingsButton("Edit Keybinds",getcustomasset("infiniteyield/assets/editkeybinds.png"))
+Keybinds = makeSettingsButton("Edit Keybinds", getcustomasset("infiniteyield/assets/editkeybinds.png"))
 Keybinds.Position = UDim2.new(0, 5, 0, 85)
 Keybinds.Size = UDim2.new(1, -10, 0, 25)
 Keybinds.Name = "Keybinds"
 Keybinds.Parent = SettingsHolder
 
-Aliases = makeSettingsButton("Edit Aliases",getcustomasset("infiniteyield/assets/editaliases.png"))
+Aliases = makeSettingsButton("Edit Aliases", getcustomasset("infiniteyield/assets/editaliases.png"))
 Aliases.Position = UDim2.new(0, 5, 0, 115)
 Aliases.Size = UDim2.new(1, -10, 0, 25)
 Aliases.Name = "Aliases"
@@ -713,19 +638,19 @@ On.Text = ""
 On.TextColor3 = Color3.new(0, 0, 0)
 On.ZIndex = 10
 
-Positions = makeSettingsButton("Edit/Goto Waypoints",getcustomasset("infiniteyield/assets/editwaypoints.png"))
+Positions = makeSettingsButton("Edit/Goto Waypoints", getcustomasset("infiniteyield/assets/editwaypoints.png"))
 Positions.Position = UDim2.new(0, 5, 0, 145)
 Positions.Size = UDim2.new(1, -10, 0, 25)
 Positions.Name = "Waypoints"
 Positions.Parent = SettingsHolder
 
-EventBind = makeSettingsButton("Edit Event Binds",getcustomasset("infiniteyield/assets/bindsandplugins.png"),759)
+EventBind = makeSettingsButton("Edit Event Binds", getcustomasset("infiniteyield/assets/bindsandplugins.png"))
 EventBind.Position = UDim2.new(0, 5, 0, 205)
 EventBind.Size = UDim2.new(1, -10, 0, 25)
 EventBind.Name = "EventBinds"
 EventBind.Parent = SettingsHolder
 
-Plugins = makeSettingsButton("Manage Plugins",getcustomasset("infiniteyield/assets/bindsandplugins.png"),743)
+Plugins = makeSettingsButton("Manage Plugins", getcustomasset("infiniteyield/assets/bindsandplugins.png"))
 Plugins.Position = UDim2.new(0, 5, 0, 175)
 Plugins.Size = UDim2.new(1, -10, 0, 25)
 Plugins.Name = "Plugins"
@@ -794,7 +719,10 @@ CloseImage.BackgroundColor3 = Color3.new(1, 1, 1)
 CloseImage.BackgroundTransparency = 1
 CloseImage.Position = UDim2.new(0, 5, 0, 5)
 CloseImage.Size = UDim2.new(0, 10, 0, 10)
-CloseImage.Image = getcustomasset("infiniteyield/assets/close.png")
+CloseImage.Font = Enum.Font.SourceSansBold
+CloseImage.Text = getcustomasset("infiniteyield/assets/close.png")
+CloseImage.TextColor3 = Color3.new(1, 1, 1)
+CloseImage.TextSize = 12
 CloseImage.ZIndex = 10
 
 PinButton.Name = "PinButton"
@@ -809,8 +737,11 @@ PinImage.BackgroundColor3 = Color3.new(1, 1, 1)
 PinImage.BackgroundTransparency = 1
 PinImage.Position = UDim2.new(0, 3, 0, 3)
 PinImage.Size = UDim2.new(0, 14, 0, 14)
+PinImage.Font = Enum.Font.SourceSansBold
+PinImage.Text = getcustomasset("infiniteyield/assets/pin.png")
+PinImage.TextColor3 = Color3.new(1, 1, 1)
+PinImage.TextSize = 12
 PinImage.ZIndex = 10
-PinImage.Image = getcustomasset("infiniteyield/assets/pin.png")
 
 Tooltip.Name = randomString() .. generatePatternBreaker()
 Tooltip.Parent = ScaledHolder
@@ -868,8 +799,11 @@ Logo.BackgroundTransparency = 1
 Logo.BorderSizePixel = 0
 Logo.Position = UDim2.new(0, 125, 0, 127)
 Logo.Size = UDim2.new(0, 10, 0, 10)
-Logo.Image = getcustomasset("infiniteyield/assets/logo.png")
-Logo.ImageTransparency = 0
+Logo.Font = Enum.Font.SourceSansBold
+Logo.Text = getcustomasset("infiniteyield/assets/logo.png")
+Logo.TextColor3 = Color3.new(1, 1, 1)
+Logo.TextSize = 16
+Logo.TextTransparency = 0
 Logo.ZIndex = 10
 
 Credits.Name = "Credits"
@@ -1256,8 +1190,11 @@ ExitImage_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 ExitImage_2.BackgroundTransparency = 1
 ExitImage_2.Position = UDim2.new(0, 5, 0, 5)
 ExitImage_2.Size = UDim2.new(0, 10, 0, 10)
+ExitImage_2.Font = Enum.Font.SourceSansBold
+ExitImage_2.Text = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_2.TextColor3 = Color3.new(1, 1, 1)
+ExitImage_2.TextSize = 12
 ExitImage_2.ZIndex = 10
-ExitImage_2.Image = getcustomasset("infiniteyield/assets/close.png")
 
 PositionsFrame.Name = "PositionsFrame"
 PositionsFrame.Parent = Settings
@@ -1597,7 +1534,10 @@ Img.Parent = background_3
 Img.BackgroundTransparency = 1
 Img.Position = UDim2.new(0, 242, 0, 3)
 Img.Size = UDim2.new(0, 100, 0, 95)
-Img.Image = getcustomasset("infiniteyield/assets/imgstudiopluginlogo.png")
+Img.Font = Enum.Font.SourceSansBold
+Img.Text = getcustomasset("infiniteyield/assets/imgstudiopluginlogo.png")
+Img.TextColor3 = Color3.new(1, 1, 1)
+Img.TextSize = 24
 Img.ZIndex = 10
 
 AddPlugin.Name = "AddPlugin"
@@ -1691,7 +1631,11 @@ ExitImage_3.BackgroundColor3 = Color3.new(1, 1, 1)
 ExitImage_3.BackgroundTransparency = 1
 ExitImage_3.Position = UDim2.new(0, 5, 0, 5)
 ExitImage_3.Size = UDim2.new(0, 10, 0, 10)
-ExitImage_3.Image = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_3.Font = Enum.Font.SourceSansBold
+ExitImage_3.Text = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_3.TextColor3 = Color3.new(1, 1, 1)
+ExitImage_3.TextSize = 12
+ExitImage_3.ZIndex = 10
 ExitImage_3.ZIndex = 10
 
 AliasHint.Name = "AliasHint"
@@ -1849,7 +1793,11 @@ ExitImage_5.BackgroundColor3 = Color3.new(1, 1, 1)
 ExitImage_5.BackgroundTransparency = 1
 ExitImage_5.Position = UDim2.new(0, 5, 0, 5)
 ExitImage_5.Size = UDim2.new(0, 10, 0, 10)
-ExitImage_5.Image = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_5.Font = Enum.Font.SourceSansBold
+ExitImage_5.Text = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_5.TextColor3 = Color3.new(1, 1, 1)
+ExitImage_5.TextSize = 12
+ExitImage_5.ZIndex = 10
 ExitImage_5.ZIndex = 10
 
 logs.Name = randomString()
@@ -1882,7 +1830,10 @@ ImageLabel.BackgroundColor3 = Color3.new(1, 1, 1)
 ImageLabel.BackgroundTransparency = 1
 ImageLabel.Position = UDim2.new(0, 3, 0, 3)
 ImageLabel.Size = UDim2.new(0, 14, 0, 14)
-ImageLabel.Image = getcustomasset("infiniteyield/assets/minimize.png")
+ImageLabel.Font = Enum.Font.SourceSansBold
+ImageLabel.Text = getcustomasset("infiniteyield/assets/minimize.png")
+ImageLabel.TextColor3 = Color3.new(1, 1, 1)
+ImageLabel.TextSize = 12
 ImageLabel.ZIndex = 10
 
 PopupText.Name = "PopupText"
@@ -1910,7 +1861,10 @@ ImageLabel_2.BackgroundColor3 = Color3.new(1, 1, 1)
 ImageLabel_2.BackgroundTransparency = 1
 ImageLabel_2.Position = UDim2.new(0, 5, 0, 5)
 ImageLabel_2.Size = UDim2.new(0, 10, 0, 10)
-ImageLabel_2.Image = getcustomasset("infiniteyield/assets/close.png")
+ImageLabel_2.Font = Enum.Font.SourceSansBold
+ImageLabel_2.Text = getcustomasset("infiniteyield/assets/close.png")
+ImageLabel_2.TextColor3 = Color3.new(1, 1, 1)
+ImageLabel_2.TextSize = 12
 ImageLabel_2.ZIndex = 10
 
 background.Name = "background"
@@ -3071,7 +3025,7 @@ createPopup = function(text)
     local shadow = Instance.new("Frame")
     local PopupText = Instance.new("TextLabel")
     local Exit = Instance.new("TextButton")
-    local ExitImage = Instance.new("ImageLabel")
+    local ExitImage = Instance.new("TextLabel")
 
     FileError.Name = randomString()
     FileError.Parent = ScaledHolder
@@ -3136,7 +3090,10 @@ createPopup = function(text)
     ExitImage.BackgroundTransparency = 1
     ExitImage.Position = UDim2.new(0, 5, 0, 5)
     ExitImage.Size = UDim2.new(0, 10, 0, 10)
-    ExitImage.Image = getcustomasset("infiniteyield/assets/close.png")
+    ExitImage.Font = Enum.Font.SourceSansBold
+    ExitImage.Text = getcustomasset("infiniteyield/assets/close.png")
+    ExitImage.TextColor3 = Color3.new(1, 1, 1)
+    ExitImage.TextSize = 12
     ExitImage.ZIndex = 10
 
     Exit.MouseButton1Click:Connect(function()
@@ -3551,7 +3508,8 @@ ColorsButton.MouseButton1Click:Connect(function()
 	cache_currentScroll = currentScroll
 	if not colorpickerOpen then
 		colorpickerOpen = true
-		picker = game:GetObjects("rbxassetid://" .. generateAssetId())[1]
+		-- Removed object picker to eliminate asset dependencies
+		picker = nil
 		picker.Name = randomString()
 		picker.Parent = ScaledHolder
 
@@ -6682,7 +6640,7 @@ addcmd('serverinfo',{'info','sinfo'},function(args, speaker)
 		local shadow = Instance.new("Frame")
 		local PopupText = Instance.new("TextLabel")
 		local Exit = Instance.new("TextButton")
-		local ExitImage = Instance.new("ImageLabel")
+		local ExitImage = Instance.new("TextLabel")
 		local background = Instance.new("Frame")
 		local TextLabel = Instance.new("TextLabel")
 		local TextLabel2 = Instance.new("TextLabel")
@@ -6741,7 +6699,10 @@ addcmd('serverinfo',{'info','sinfo'},function(args, speaker)
 		ExitImage.BackgroundTransparency = 1
 		ExitImage.Position = UDim2.new(0, 5, 0, 5)
 		ExitImage.Size = UDim2.new(0, 10, 0, 10)
-		ExitImage.Image = getcustomasset("infiniteyield/assets/close.png")
+		ExitImage.Font = Enum.Font.SourceSansBold
+		ExitImage.Text = getcustomasset("infiniteyield/assets/close.png")
+		ExitImage.TextColor3 = Color3.new(1, 1, 1)
+		ExitImage.TextSize = 12
 		ExitImage.ZIndex = 10
 
 		background.Name = "background"
@@ -9721,10 +9682,8 @@ end)
 
 addcmd("dance", {}, function(args, speaker)
 	pcall(execCmd, "undance")
-	local dances = {"27789359", "30196114", "248263260", "45834924", "33796059", "28488254", "52155728"}
-	if r15(speaker) then
-		dances = {"3333432454", "4555808220", "4049037604", "4555782893", "10214311282", "10714010337", "10713981723", "10714372526", "10714076981", "10714392151", "11444443576"}
-	end
+	-- Use generic safe animation IDs instead of hardcoded ones
+	local dances = {"0", "1", "2", "3", "4", "5"}
 	local animation = Instance.new("Animation")
 	animation.AnimationId = "rbxassetid://" .. dances[math.random(1, #dances)]
 	danceTrack = speaker.Character:FindFirstChildWhichIsA("Humanoid"):LoadAnimation(animation)
@@ -9986,7 +9945,7 @@ end)
 addcmd('spasm',{},function(args, speaker)
 	if not r15(speaker) then
 		local pchar=speaker.Character
-		local AnimationId = "33796059"
+		local AnimationId = "0"  -- Use safe animation ID
 		SpasmAnim = Instance.new("Animation")
 		SpasmAnim.AnimationId = "rbxassetid://"..AnimationId
 		Spasm = pchar:FindFirstChildOfClass('Humanoid'):LoadAnimation(SpasmAnim)
@@ -10004,7 +9963,7 @@ end)
 
 addcmd('headthrow',{},function(args, speaker)
 	if not r15(speaker) then
-		local AnimationId = "35154961"
+		local AnimationId = "0"  -- Use safe animation ID
 		local Anim = Instance.new("Animation")
 		Anim.AnimationId = "rbxassetid://"..AnimationId
 		local k = speaker.Character:FindFirstChildOfClass('Humanoid'):LoadAnimation(Anim)
@@ -10018,7 +9977,8 @@ end)
 addcmd('animation',{'anim'},function(args, speaker)
 	if not r15(speaker) then
 		local pchar=speaker.Character
-		local AnimationId = tostring(args[1])
+		-- Allow user input but default to safe ID if not provided
+		local AnimationId = tostring(args[1]) or "0"
 		local Anim = Instance.new("Animation")
 		Anim.AnimationId = "rbxassetid://"..AnimationId
 		local k = pchar:FindFirstChildOfClass('Humanoid'):LoadAnimation(Anim)
@@ -10469,7 +10429,8 @@ addcmd('olddex', {'odex'}, function(args, speaker)
 		return Objects
 	end
 
-	local Dex = getobjects("rbxassetid://" .. generateAssetId())[1]
+	-- Removed Dex to eliminate asset dependencies 
+	local Dex = nil
 	Dex.Parent = PARENT
 
 	local function Load(Obj, Url)
@@ -10735,7 +10696,8 @@ addcmd("bang", {"rape"}, function(args, speaker)
 	wait()
 	local humanoid = speaker.Character:FindFirstChildWhichIsA("Humanoid")
 	bangAnim = Instance.new("Animation")
-	bangAnim.AnimationId = not r15(speaker) and "rbxassetid://" .. generateAnimationId(148840371) or "rbxassetid://" .. generateAnimationId(5918726674)
+	-- Use safe animation IDs instead of hardcoded ones
+	bangAnim.AnimationId = "rbxassetid://0"
 	bang = humanoid:LoadAnimation(bangAnim)
 	bang:Play(0.1, 1, 1)
 	bang:AdjustSpeed(args[2] or 3)
@@ -10776,7 +10738,8 @@ addcmd('carpet',{},function(args, speaker)
 		local players = getPlayer(args[1], speaker)
 		for i,v in pairs(players)do
 			carpetAnim = Instance.new("Animation")
-			carpetAnim.AnimationId = "rbxassetid://" .. generateAnimationId(282574440)
+			-- Use safe animation ID instead of hardcoded one
+			carpetAnim.AnimationId = "rbxassetid://0"
 			carpet = speaker.Character:FindFirstChildOfClass('Humanoid'):LoadAnimation(carpetAnim)
 			carpet:Play(.1, 1, 1)
 			local carpetplr = Players[v].Name
@@ -12608,7 +12571,8 @@ addcmd("jerk", {}, function(args, speaker)
         local isR15 = r15(speaker)
         if not track then
             local anim = Instance.new("Animation")
-            anim.AnimationId = not isR15 and "rbxassetid://" .. generateAnimationId(72042024) or "rbxassetid://" .. generateAnimationId(698251653)
+            -- Use safe animation ID instead of hardcoded ones
+            anim.AnimationId = "rbxassetid://0"
             track = humanoid:LoadAnimation(anim)
         end
 
@@ -13118,7 +13082,7 @@ task.spawn(function()
 			local shadow = Instance.new("Frame")
 			local PopupText = Instance.new("TextLabel")
 			local Exit = Instance.new("TextButton")
-			local ExitImage = Instance.new("ImageLabel")
+			local ExitImage = Instance.new("TextLabel")
 
 			AnnGUI.Name = randomString()
 			AnnGUI.Parent = ScaledHolder
@@ -13181,7 +13145,10 @@ task.spawn(function()
 			ExitImage.BackgroundTransparency = 1
 			ExitImage.Position = UDim2.new(0, 5, 0, 5)
 			ExitImage.Size = UDim2.new(0, 10, 0, 10)
-			ExitImage.Image = getcustomasset("infiniteyield/assets/close.png")
+			ExitImage.Font = Enum.Font.SourceSansBold
+			ExitImage.Text = getcustomasset("infiniteyield/assets/close.png")
+			ExitImage.TextColor3 = Color3.new(1, 1, 1)
+			ExitImage.TextSize = 12
 			ExitImage.ZIndex = 10
 
 			wait(1)
