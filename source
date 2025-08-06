@@ -115,106 +115,32 @@ PlaceId, JobId = game.PlaceId, game.JobId
 IsOnMobile = table.find({Enum.Platform.Android, Enum.Platform.IOS}, UserInputService:GetPlatform())
 isLegacyChat = TextChatService.ChatVersion == Enum.ChatVersion.LegacyChatService
 
--- Dynamic asset generation to prevent detection
-local function generateAssetMap()
-    local success, result = pcall(function()
-        local baseAssetIds = {
-            bindsandplugins = 5147695474,
-            close = 5054663650,
-            editaliases = 5147488658,
-            editkeybinds = 129697930,
-            edittheme = 4911962991,
-            editwaypoints = 5147488592,
-            imgstudiopluginlogo = 4113050383,
-            logo = 1352543800 + math.random(1, 99), -- Obfuscated base logo ID
-            minimize = 2406617031,
-            pin = 6234691350,
-            reference = 3523243755,
-            settings = 1204397029
-        }
-        
-        local iyassets = {}
-    for name, baseId in pairs(baseAssetIds) do
-        local dynamicId = baseId + math.random(-10000, 10000)
-        iyassets[("infiniteyield/assets/%s.png"):format(name:gsub("([A-Z])", function(c) return c:lower() end))] = ("rbxassetid://%d"):format(math.abs(dynamicId))
-    end
-    
-    -- Fallback to obfuscated IDs if dynamic generation fails
-    local fallbackAssets = {
-        ["infiniteyield/assets/bindsandplugins.png"] = "rbxassetid://" .. (5147695474 + math.random(-100, 100)),
-        ["infiniteyield/assets/close.png"] = "rbxassetid://" .. (5054663650 + math.random(-100, 100)), 
-        ["infiniteyield/assets/editaliases.png"] = "rbxassetid://" .. (5147488658 + math.random(-100, 100)),
-        ["infiniteyield/assets/editkeybinds.png"] = "rbxassetid://" .. (129697930 + math.random(-100, 100)),
-        ["infiniteyield/assets/edittheme.png"] = "rbxassetid://" .. (4911962991 + math.random(-100, 100)),
-        ["infiniteyield/assets/editwaypoints.png"] = "rbxassetid://" .. (5147488592 + math.random(-100, 100)),
-        ["infiniteyield/assets/imgstudiopluginlogo.png"] = "rbxassetid://" .. (4113050383 + math.random(-100, 100)),
-        ["infiniteyield/assets/logo.png"] = "rbxassetid://" .. (1352543800 + math.random(1, 99)), -- Obfuscated
-        ["infiniteyield/assets/minimize.png"] = "rbxassetid://" .. (2406617031 + math.random(-100, 100)),
-        ["infiniteyield/assets/pin.png"] = "rbxassetid://" .. (6234691350 + math.random(-100, 100)),
-        ["infiniteyield/assets/reference.png"] = "rbxassetid://" .. (3523243755 + math.random(-100, 100)),
-        ["infiniteyield/assets/settings.png"] = "rbxassetid://" .. (1204397029 + math.random(-100, 100))
+-- Unicode symbol alternatives to replace assets completely
+local function getUnicodeSymbol(assetPath)
+    local symbolMap = {
+        ["infiniteyield/assets/close.png"] = "✖",
+        ["infiniteyield/assets/minimize.png"] = "⊖", 
+        ["infiniteyield/assets/pin.png"] = "📌",
+        ["infiniteyield/assets/settings.png"] = "⚙",
+        ["infiniteyield/assets/reference.png"] = "📖",
+        ["infiniteyield/assets/edittheme.png"] = "🎨",
+        ["infiniteyield/assets/editkeybinds.png"] = "⌨",
+        ["infiniteyield/assets/editaliases.png"] = "🔗",
+        ["infiniteyield/assets/editwaypoints.png"] = "📍",
+        ["infiniteyield/assets/bindsandplugins.png"] = "🔧",
+        ["infiniteyield/assets/imgstudiopluginlogo.png"] = "🔌",
+        ["infiniteyield/assets/logo.png"] = "∞"
     }
-    
-    for key, value in pairs(fallbackAssets) do
-        if not iyassets[key] then
-            iyassets[key] = value
-        end
-    end
-    
-        return iyassets
-    end)
-    
-    if success then
-        return result
-    else
-        -- Fallback asset map if generation fails
-        return {
-            ["infiniteyield/assets/bindsandplugins.png"] = "rbxassetid://5147695474",
-            ["infiniteyield/assets/close.png"] = "rbxassetid://5054663650", 
-            ["infiniteyield/assets/editaliases.png"] = "rbxassetid://5147488658",
-            ["infiniteyield/assets/editkeybinds.png"] = "rbxassetid://129697930",
-            ["infiniteyield/assets/edittheme.png"] = "rbxassetid://4911962991",
-            ["infiniteyield/assets/editwaypoints.png"] = "rbxassetid://5147488592",
-            ["infiniteyield/assets/imgstudiopluginlogo.png"] = "rbxassetid://4113050383",
-            ["infiniteyield/assets/logo.png"] = "rbxassetid://1352543899", -- Static fallback
-            ["infiniteyield/assets/minimize.png"] = "rbxassetid://2406617031",
-            ["infiniteyield/assets/pin.png"] = "rbxassetid://6234691350",
-            ["infiniteyield/assets/reference.png"] = "rbxassetid://3523243755",
-            ["infiniteyield/assets/settings.png"] = "rbxassetid://1204397029"
-        }
-    end
+    return symbolMap[assetPath] or "■"
 end
 
-local iyassets = generateAssetMap()
-
+-- Text-based asset system - no external references
 local function getcustomasset(asset)
-    if waxgetcustomasset then
-        local success, result = pcall(function()
-            return waxgetcustomasset(asset)
-        end)
-        if success and result ~= nil and result ~= "" then
-            return result
-        end
-    end
-    return iyassets[asset]
+    -- Always return Unicode symbol instead of asset ID
+    return getUnicodeSymbol(asset)
 end
 
-if makefolder and isfolder and writefile and isfile then
-    pcall(function() -- good executor trust
-        local assets = "https://raw.githubusercontent.com/infyiff/backup/refs/heads/main/"
-        for _, folder in {"infiniteyield", "infiniteyield/assets"} do
-            if not isfolder(folder) then
-                makefolder(folder)
-            end
-        end
-        for path in iyassets do
-            if not isfile(path) then
-                writefile(path, game:HttpGet((path:gsub("infiniteyield/", assets))))
-            end
-        end
-        if IsOnMobile then writefile("infiniteyield/assets/.nomedia") end
-    end)
-end
+-- Asset downloading system removed - no external assets needed
 
 -- Dynamic version generation to prevent signature detection
 local function generateVersion()
@@ -260,14 +186,14 @@ Notification = Instance.new("Frame")
 Title_2 = Instance.new("TextLabel")
 Text_2 = Instance.new("TextLabel")
 CloseButton = Instance.new("TextButton")
-CloseImage = Instance.new("ImageLabel")
+CloseImage = Instance.new("TextLabel")
 PinButton = Instance.new("TextButton")
-PinImage = Instance.new("ImageLabel")
+PinImage = Instance.new("TextLabel")
 Tooltip = Instance.new("Frame")
 Title_3 = Instance.new("TextLabel")
 Description = Instance.new("TextLabel")
 IntroBackground = Instance.new("Frame")
-Logo = Instance.new("ImageLabel")
+Logo = Instance.new("TextLabel")
 Credits = Instance.new("TextBox")
 KeybindsFrame = Instance.new("Frame")
 Close = Instance.new("TextButton")
@@ -298,7 +224,7 @@ On_2 = Instance.new("TextButton")
 shadow_2 = Instance.new("Frame")
 PopupText_2 = Instance.new("TextLabel")
 Exit_2 = Instance.new("TextButton")
-ExitImage_2 = Instance.new("ImageLabel")
+ExitImage_2 = Instance.new("TextLabel")
 PositionsFrame = Instance.new("Frame")
 Close_3 = Instance.new("TextButton")
 Delete_5 = Instance.new("TextButton")
@@ -326,7 +252,7 @@ Delete_7 = Instance.new("TextButton")
 PluginEditor = Instance.new("Frame")
 background_3 = Instance.new("Frame")
 Dark_2 = Instance.new("Frame")
-Img = Instance.new("ImageButton")
+Img = Instance.new("TextButton")
 AddPlugin = Instance.new("TextButton")
 FileName = Instance.new("TextBox")
 About = Instance.new("TextLabel")
@@ -334,7 +260,7 @@ Directions_2 = Instance.new("TextLabel")
 shadow_3 = Instance.new("Frame")
 PopupText_3 = Instance.new("TextLabel")
 Exit_3 = Instance.new("TextButton")
-ExitImage_3 = Instance.new("ImageLabel")
+ExitImage_3 = Instance.new("TextLabel")
 AliasHint = Instance.new("TextLabel")
 PluginsHint = Instance.new("TextLabel")
 PositionsHint = Instance.new("TextLabel")
@@ -347,14 +273,14 @@ Path = Instance.new("TextLabel")
 shadow_4 = Instance.new("Frame")
 PopupText_5 = Instance.new("TextLabel")
 Exit_4 = Instance.new("TextButton")
-ExitImage_5 = Instance.new("ImageLabel")
+ExitImage_5 = Instance.new("TextLabel")
 logs = Instance.new("Frame")
 shadow = Instance.new("Frame")
 Hide = Instance.new("TextButton")
-ImageLabel = Instance.new("ImageLabel")
+ImageLabel = Instance.new("TextLabel")
 PopupText = Instance.new("TextLabel")
 Exit = Instance.new("TextButton")
-ImageLabel_2 = Instance.new("ImageLabel")
+ImageLabel_2 = Instance.new("TextLabel")
 background = Instance.new("Frame")
 chat = Instance.new("Frame")
 Clear = Instance.new("TextButton")
@@ -378,13 +304,7 @@ function obfuscateString(str)
 	return table.concat(obfuscated)
 end
 
--- Dynamic asset ID generation 
-function generateAssetId()
-	local baseIds = {4113050383, 5147695474, 129697930, 4911962991, 5147488592, 1204397029, 5054663650, 2406617031, 6234691350, 3523243755}
-	local randomOffset = math.random(-50000, 50000)
-	local baseId = baseIds[math.random(1, #baseIds)]
-	return tostring(baseId + randomOffset)
-end
+-- Asset ID generation functions removed - no external assets used
 
 -- Runtime string building for signatures
 function buildVersionString()
@@ -392,11 +312,7 @@ function buildVersionString()
 	return table.concat(parts) .. " FE v"
 end
 
--- Dynamic animation ID generation to prevent detection
-function generateAnimationId(baseId)
-	local offset = math.random(-1000, 1000)
-	return tostring(math.abs(baseId + offset))
-end
+-- Animation ID generation removed - no external animations used
 
 -- Obfuscated URL to prevent detection
 local function getUpdateUrl()
@@ -551,16 +467,22 @@ SettingsButton.Parent = Holder
 SettingsButton.BackgroundTransparency = 1
 SettingsButton.Position = UDim2.new(0, 230, 0, 0)
 SettingsButton.Size = UDim2.new(0, 20, 0, 20)
-SettingsButton.Image = getcustomasset("infiniteyield/assets/settings.png")
+SettingsButton.Text = "⚙"
+SettingsButton.TextColor3 = Color3.new(1, 1, 1)
+SettingsButton.TextSize = 16
+SettingsButton.Font = Enum.Font.SourceSans
 SettingsButton.ZIndex = 10
 
-ReferenceButton = Instance.new("ImageButton")
+ReferenceButton = Instance.new("TextButton")
 ReferenceButton.Name = "ReferenceButton"
 ReferenceButton.Parent = Holder
 ReferenceButton.BackgroundTransparency = 1
 ReferenceButton.Position = UDim2.new(0, 212, 0, 2)
 ReferenceButton.Size = UDim2.new(0, 16, 0, 16)
-ReferenceButton.Image = getcustomasset("infiniteyield/assets/reference.png")
+ReferenceButton.Text = "📖"
+ReferenceButton.TextColor3 = Color3.new(1, 1, 1)
+ReferenceButton.TextSize = 12
+ReferenceButton.Font = Enum.Font.SourceSans
 ReferenceButton.ZIndex = 10
 
 Settings.Name = "Settings"
@@ -619,7 +541,7 @@ PrefixBox.ZIndex = 10
 table.insert(shade3,PrefixBox)
 table.insert(text2,PrefixBox)
 
-function makeSettingsButton(name,iconID,off)
+function makeSettingsButton(name,iconText,off)
 	local button = Instance.new("TextButton")
 	button.BackgroundColor3 = Color3.fromRGB(46, 46, 47)
 	button.BorderSizePixel = 0
@@ -627,19 +549,17 @@ function makeSettingsButton(name,iconID,off)
 	button.Size = UDim2.new(1,0,0,25)
 	button.Text = ""
 	button.ZIndex = 10
-	local icon = Instance.new("ImageLabel")
+	local icon = Instance.new("TextLabel")
 	icon.Name = "Icon"
 	icon.Parent = button
 	icon.Position = UDim2.new(0,5,0,5)
 	icon.Size = UDim2.new(0,16,0,16)
 	icon.BackgroundTransparency = 1
-	icon.Image = iconID
+	icon.Text = iconText or "■"
+	icon.TextColor3 = Color3.new(1, 1, 1)
+	icon.TextSize = 14
+	icon.Font = Enum.Font.SourceSans
 	icon.ZIndex = 10
-	if off then
-		icon.ScaleType = Enum.ScaleType.Crop
-		icon.ImageRectSize = Vector2.new(16,16)
-		icon.ImageRectOffset = Vector2.new(off,0)
-	end
 	local label = Instance.new("TextLabel")
 	label.Name = "ButtonLabel"
 	label.Parent = button
@@ -654,22 +574,23 @@ function makeSettingsButton(name,iconID,off)
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	table.insert(shade2,button)
 	table.insert(text1,label)
+	table.insert(text1,icon)
 	return button
 end
 
-ColorsButton = makeSettingsButton("Edit Theme",getcustomasset("infiniteyield/assets/edittheme.png"))
+ColorsButton = makeSettingsButton("Edit Theme","🎨")
 ColorsButton.Position = UDim2.new(0, 5, 0, 55)
 ColorsButton.Size = UDim2.new(1, -10, 0, 25)
 ColorsButton.Name = "Colors"
 ColorsButton.Parent = SettingsHolder
 
-Keybinds = makeSettingsButton("Edit Keybinds",getcustomasset("infiniteyield/assets/editkeybinds.png"))
+Keybinds = makeSettingsButton("Edit Keybinds","⌨")
 Keybinds.Position = UDim2.new(0, 5, 0, 85)
 Keybinds.Size = UDim2.new(1, -10, 0, 25)
 Keybinds.Name = "Keybinds"
 Keybinds.Parent = SettingsHolder
 
-Aliases = makeSettingsButton("Edit Aliases",getcustomasset("infiniteyield/assets/editaliases.png"))
+Aliases = makeSettingsButton("Edit Aliases","🔗")
 Aliases.Position = UDim2.new(0, 5, 0, 115)
 Aliases.Size = UDim2.new(1, -10, 0, 25)
 Aliases.Name = "Aliases"
@@ -713,19 +634,19 @@ On.Text = ""
 On.TextColor3 = Color3.new(0, 0, 0)
 On.ZIndex = 10
 
-Positions = makeSettingsButton("Edit/Goto Waypoints",getcustomasset("infiniteyield/assets/editwaypoints.png"))
+Positions = makeSettingsButton("Edit/Goto Waypoints","📍")
 Positions.Position = UDim2.new(0, 5, 0, 145)
 Positions.Size = UDim2.new(1, -10, 0, 25)
 Positions.Name = "Waypoints"
 Positions.Parent = SettingsHolder
 
-EventBind = makeSettingsButton("Edit Event Binds",getcustomasset("infiniteyield/assets/bindsandplugins.png"),759)
+EventBind = makeSettingsButton("Edit Event Binds","🔧")
 EventBind.Position = UDim2.new(0, 5, 0, 205)
 EventBind.Size = UDim2.new(1, -10, 0, 25)
 EventBind.Name = "EventBinds"
 EventBind.Parent = SettingsHolder
 
-Plugins = makeSettingsButton("Manage Plugins",getcustomasset("infiniteyield/assets/bindsandplugins.png"),743)
+Plugins = makeSettingsButton("Manage Plugins","🔌")
 Plugins.Position = UDim2.new(0, 5, 0, 175)
 Plugins.Size = UDim2.new(1, -10, 0, 25)
 Plugins.Name = "Plugins"
@@ -794,7 +715,10 @@ CloseImage.BackgroundColor3 = Color3.new(1, 1, 1)
 CloseImage.BackgroundTransparency = 1
 CloseImage.Position = UDim2.new(0, 5, 0, 5)
 CloseImage.Size = UDim2.new(0, 10, 0, 10)
-CloseImage.Image = getcustomasset("infiniteyield/assets/close.png")
+CloseImage.Text = "✖"
+CloseImage.TextColor3 = Color3.new(1, 1, 1)
+CloseImage.TextSize = 10
+CloseImage.Font = Enum.Font.SourceSans
 CloseImage.ZIndex = 10
 
 PinButton.Name = "PinButton"
@@ -810,7 +734,10 @@ PinImage.BackgroundTransparency = 1
 PinImage.Position = UDim2.new(0, 3, 0, 3)
 PinImage.Size = UDim2.new(0, 14, 0, 14)
 PinImage.ZIndex = 10
-PinImage.Image = getcustomasset("infiniteyield/assets/pin.png")
+PinImage.Text = "📌"
+PinImage.TextColor3 = Color3.new(1, 1, 1)
+PinImage.TextSize = 12
+PinImage.Font = Enum.Font.SourceSans
 
 Tooltip.Name = randomString() .. generatePatternBreaker()
 Tooltip.Parent = ScaledHolder
@@ -868,8 +795,11 @@ Logo.BackgroundTransparency = 1
 Logo.BorderSizePixel = 0
 Logo.Position = UDim2.new(0, 125, 0, 127)
 Logo.Size = UDim2.new(0, 10, 0, 10)
-Logo.Image = getcustomasset("infiniteyield/assets/logo.png")
-Logo.ImageTransparency = 0
+Logo.Text = "∞"
+Logo.TextColor3 = Color3.new(1, 1, 1)
+Logo.TextSize = 20
+Logo.Font = Enum.Font.SourceSansBold
+Logo.TextTransparency = 0
 Logo.ZIndex = 10
 
 Credits.Name = "Credits"
@@ -1257,7 +1187,10 @@ ExitImage_2.BackgroundTransparency = 1
 ExitImage_2.Position = UDim2.new(0, 5, 0, 5)
 ExitImage_2.Size = UDim2.new(0, 10, 0, 10)
 ExitImage_2.ZIndex = 10
-ExitImage_2.Image = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_2.Text = "✖"
+ExitImage_2.TextColor3 = Color3.new(1, 1, 1)
+ExitImage_2.TextSize = 10
+ExitImage_2.Font = Enum.Font.SourceSans
 
 PositionsFrame.Name = "PositionsFrame"
 PositionsFrame.Parent = Settings
@@ -1597,7 +1530,10 @@ Img.Parent = background_3
 Img.BackgroundTransparency = 1
 Img.Position = UDim2.new(0, 242, 0, 3)
 Img.Size = UDim2.new(0, 100, 0, 95)
-Img.Image = getcustomasset("infiniteyield/assets/imgstudiopluginlogo.png")
+Img.Text = "🔌"
+Img.TextColor3 = Color3.new(1, 1, 1)
+Img.TextSize = 48
+Img.Font = Enum.Font.SourceSansBold
 Img.ZIndex = 10
 
 AddPlugin.Name = "AddPlugin"
@@ -1691,7 +1627,10 @@ ExitImage_3.BackgroundColor3 = Color3.new(1, 1, 1)
 ExitImage_3.BackgroundTransparency = 1
 ExitImage_3.Position = UDim2.new(0, 5, 0, 5)
 ExitImage_3.Size = UDim2.new(0, 10, 0, 10)
-ExitImage_3.Image = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_3.Text = "✖"
+ExitImage_3.TextColor3 = Color3.new(1, 1, 1)
+ExitImage_3.TextSize = 10
+ExitImage_3.Font = Enum.Font.SourceSans
 ExitImage_3.ZIndex = 10
 
 AliasHint.Name = "AliasHint"
@@ -1849,7 +1788,10 @@ ExitImage_5.BackgroundColor3 = Color3.new(1, 1, 1)
 ExitImage_5.BackgroundTransparency = 1
 ExitImage_5.Position = UDim2.new(0, 5, 0, 5)
 ExitImage_5.Size = UDim2.new(0, 10, 0, 10)
-ExitImage_5.Image = getcustomasset("infiniteyield/assets/close.png")
+ExitImage_5.Text = "✖"
+ExitImage_5.TextColor3 = Color3.new(1, 1, 1)
+ExitImage_5.TextSize = 10
+ExitImage_5.Font = Enum.Font.SourceSans
 ExitImage_5.ZIndex = 10
 
 logs.Name = randomString()
@@ -1882,7 +1824,10 @@ ImageLabel.BackgroundColor3 = Color3.new(1, 1, 1)
 ImageLabel.BackgroundTransparency = 1
 ImageLabel.Position = UDim2.new(0, 3, 0, 3)
 ImageLabel.Size = UDim2.new(0, 14, 0, 14)
-ImageLabel.Image = getcustomasset("infiniteyield/assets/minimize.png")
+ImageLabel.Text = "⊖"
+ImageLabel.TextColor3 = Color3.new(1, 1, 1)
+ImageLabel.TextSize = 12
+ImageLabel.Font = Enum.Font.SourceSans
 ImageLabel.ZIndex = 10
 
 PopupText.Name = "PopupText"
@@ -1910,7 +1855,10 @@ ImageLabel_2.BackgroundColor3 = Color3.new(1, 1, 1)
 ImageLabel_2.BackgroundTransparency = 1
 ImageLabel_2.Position = UDim2.new(0, 5, 0, 5)
 ImageLabel_2.Size = UDim2.new(0, 10, 0, 10)
-ImageLabel_2.Image = getcustomasset("infiniteyield/assets/close.png")
+ImageLabel_2.Text = "✖"
+ImageLabel_2.TextColor3 = Color3.new(1, 1, 1)
+ImageLabel_2.TextSize = 10
+ImageLabel_2.Font = Enum.Font.SourceSans
 ImageLabel_2.ZIndex = 10
 
 background.Name = "background"
@@ -2396,7 +2344,7 @@ eventEditor = (function()
 		{2,"Frame",{BackgroundColor3=currentShade2,BorderSizePixel=0,Name="TopBar",Parent={1},Size=UDim2.new(1,0,0,20),ZIndex=10,}},
 		{3,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={2},Position=UDim2.new(0,0,0,0),Size=UDim2.new(1,0,0.95,0),Text="Event Editor",TextColor3=Color3.new(1,1,1),TextSize=14,TextXAlignment=Enum.TextXAlignment.Center,ZIndex=10,}},
 		{4,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Close",Parent={2},Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,20,0,20),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,ZIndex=10,}},
-		{5,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image=getcustomasset("infiniteyield/assets/close.png"),Parent={4},Position=UDim2.new(0,5,0,5),Size=UDim2.new(0,10,0,10),ZIndex=10,}},
+		{5,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Text="✖",TextColor3=Color3.new(1,1,1),TextSize=10,Font=Enum.Font.SourceSans,Parent={4},Position=UDim2.new(0,5,0,5),Size=UDim2.new(0,10,0,10),ZIndex=10,}},
 		{6,"Frame",{BackgroundColor3=currentShade1,BorderSizePixel=0,Name="Content",Parent={1},Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,0,202),ZIndex=10,}},
 		{7,"ScrollingFrame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14509804546833),BackgroundTransparency=1,BorderColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel=0,BottomImage="rbxasset://textures/ui/Scroll/scroll-middle.png",CanvasSize=UDim2.new(0,0,0,100),Name="List",Parent={6},Position=UDim2.new(0,5,0,5),ScrollBarImageColor3=Color3.new(0.30588236451149,0.30588236451149,0.3098039329052),ScrollBarThickness=8,Size=UDim2.new(1,-10,1,-10),TopImage="rbxasset://textures/ui/Scroll/scroll-middle.png",ZIndex=10,}},
 		{8,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Name="Holder",Parent={7},Size=UDim2.new(1,0,1,0),ZIndex=10,}},
@@ -2452,7 +2400,7 @@ eventEditor = (function()
 		{50,"TextBox",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,ClearTextOnFocus=false,Font=3,Parent={49},PlaceholderColor3=Color3.new(1,1,1),Position=UDim2.new(0,5,0,0),Size=UDim2.new(1,-45,0,20),Text="a\\b\\c\\d",TextColor3=currentText1,TextSize=14,TextXAlignment=0,ZIndex=10,}},
 		{51,"TextButton",{BackgroundColor3=currentShade1,BorderSizePixel=0,Font=3,Name="Delete",Parent={49},Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,20,0,20),Text="X",TextColor3=Color3.new(1,1,1),TextSize=18,ZIndex=10,}},
 		{52,"TextButton",{BackgroundColor3=currentShade1,BorderSizePixel=0,Font=3,Name="Settings",Parent={49},Position=UDim2.new(1,-40,0,0),Size=UDim2.new(0,20,0,20),Text="",TextColor3=Color3.new(1,1,1),TextSize=18,ZIndex=10,}},
-		{53,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image=getcustomasset("infiniteyield/assets/settings.png"),Parent={52},Position=UDim2.new(0,2,0,2),Size=UDim2.new(0,16,0,16),ZIndex=10,}},
+		{53,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Text="⚙",TextColor3=Color3.new(1,1,1),TextSize=14,Font=Enum.Font.SourceSans,Parent={52},Position=UDim2.new(0,2,0,2),Size=UDim2.new(0,16,0,16),ZIndex=10,}},
 	})
 	main.Name = randomString()
 	local mainFrame = main:WaitForChild("Content")
@@ -2870,7 +2818,7 @@ reference = (function()
 		{2,"Frame",{BackgroundColor3=Color3.new(0.1803921610117,0.1803921610117,0.1843137294054),BorderSizePixel=0,Name="TopBar",Parent={1},Size=UDim2.new(1,0,0,20),ZIndex=10,}},
 		{3,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Title",Parent={2},Size=UDim2.new(1,0,0.94999998807907,0),Text="Reference",TextColor3=Color3.new(1,1,1),TextSize=14,ZIndex=10,}},
 		{4,"TextButton",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Close",Parent={2},Position=UDim2.new(1,-20,0,0),Size=UDim2.new(0,20,0,20),Text="",TextColor3=Color3.new(1,1,1),TextSize=14,ZIndex=10,}},
-		{5,"ImageLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Image=getcustomasset("infiniteyield/assets/close.png"),Parent={4},Position=UDim2.new(0,5,0,5),Size=UDim2.new(0,10,0,10),ZIndex=10,}},
+		{5,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Text="✖",TextColor3=Color3.new(1,1,1),TextSize=10,Font=Enum.Font.SourceSans,Parent={4},Position=UDim2.new(0,5,0,5),Size=UDim2.new(0,10,0,10),ZIndex=10,}},
 		{6,"Frame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14509804546833),BorderSizePixel=0,Name="Content",Parent={1},Position=UDim2.new(0,0,0,20),Size=UDim2.new(1,0,0,300),ZIndex=10,}},
 		{7,"ScrollingFrame",{BackgroundColor3=Color3.new(0.14117647707462,0.14117647707462,0.14509804546833),BackgroundTransparency=1,BorderColor3=Color3.new(0.15686275064945,0.15686275064945,0.15686275064945),BorderSizePixel=0,BottomImage="rbxasset://textures/ui/Scroll/scroll-middle.png",CanvasSize=UDim2.new(0,0,0,1313),Name="List",Parent={6},ScrollBarImageColor3=Color3.new(0.30588236451149,0.30588236451149,0.3098039329052),ScrollBarThickness=8,Size=UDim2.new(1,0,1,0),TopImage="rbxasset://textures/ui/Scroll/scroll-middle.png",VerticalScrollBarInset=2,ZIndex=10,}},
 		{8,"UIListLayout",{Parent={7},SortOrder=2,}},
@@ -3071,7 +3019,7 @@ createPopup = function(text)
     local shadow = Instance.new("Frame")
     local PopupText = Instance.new("TextLabel")
     local Exit = Instance.new("TextButton")
-    local ExitImage = Instance.new("ImageLabel")
+    local ExitImage = Instance.new("TextLabel")
 
     FileError.Name = randomString()
     FileError.Parent = ScaledHolder
@@ -3136,7 +3084,10 @@ createPopup = function(text)
     ExitImage.BackgroundTransparency = 1
     ExitImage.Position = UDim2.new(0, 5, 0, 5)
     ExitImage.Size = UDim2.new(0, 10, 0, 10)
-    ExitImage.Image = getcustomasset("infiniteyield/assets/close.png")
+    ExitImage.Text = "✖"
+    ExitImage.TextColor3 = Color3.new(1, 1, 1)
+    ExitImage.TextSize = 10
+    ExitImage.Font = Enum.Font.SourceSans
     ExitImage.ZIndex = 10
 
     Exit.MouseButton1Click:Connect(function()
@@ -3429,7 +3380,7 @@ function CreateJoinLabel(plr,ID)
 	local infoFrame = Instance.new("Frame")
 	local info1 = Instance.new("TextLabel")
 	local info2 = Instance.new("TextLabel")
-	local ImageLabel_3 = Instance.new("ImageLabel")
+	local ImageLabel_3 = Instance.new("TextLabel")
 	infoFrame.Name = randomString()
 	infoFrame.Parent = scroll_3
 	infoFrame.BackgroundColor3 = Color3.new(1, 1, 1)
@@ -3467,7 +3418,10 @@ function CreateJoinLabel(plr,ID)
 	ImageLabel_3.BackgroundTransparency = 1
 	ImageLabel_3.BorderSizePixel = 0
 	ImageLabel_3.Size = UDim2.new(0, 45, 1, 0)
-	ImageLabel_3.Image = Players:GetUserThumbnailAsync(ID, Enum.ThumbnailType.AvatarThumbnail, Enum.ThumbnailSize.Size420x420)
+	ImageLabel_3.Text = "👤"
+	ImageLabel_3.TextColor3 = Color3.new(1, 1, 1)
+	ImageLabel_3.TextSize = 32
+	ImageLabel_3.Font = Enum.Font.SourceSansBold
 	scroll_3.CanvasSize = UDim2.new(0, 0, 0, listlayout.AbsoluteContentSize.Y)
 	scroll_3.CanvasPosition = Vector2.new(0,scroll_2.CanvasPosition.Y+infoFrame.AbsoluteSize.Y)
 	wait()
@@ -3551,8 +3505,14 @@ ColorsButton.MouseButton1Click:Connect(function()
 	cache_currentScroll = currentScroll
 	if not colorpickerOpen then
 		colorpickerOpen = true
-		picker = game:GetObjects("rbxassetid://" .. generateAssetId())[1]
+		-- Create color picker without external assets
+		picker = Instance.new("Frame")
 		picker.Name = randomString()
+		picker.Size = UDim2.new(0, 180, 0, 120)
+		picker.BackgroundColor3 = Color3.fromRGB(46, 46, 47)
+		picker.BorderSizePixel = 0
+		picker.Position = UDim2.new(0.5, -90, 0.5, -60)
+		picker.ZIndex = 10
 		picker.Parent = ScaledHolder
 
 		local ColorPicker do
@@ -6741,7 +6701,10 @@ addcmd('serverinfo',{'info','sinfo'},function(args, speaker)
 		ExitImage.BackgroundTransparency = 1
 		ExitImage.Position = UDim2.new(0, 5, 0, 5)
 		ExitImage.Size = UDim2.new(0, 10, 0, 10)
-		ExitImage.Image = getcustomasset("infiniteyield/assets/close.png")
+		ExitImage.Text = "✖"
+		ExitImage.TextColor3 = Color3.new(1, 1, 1)
+		ExitImage.TextSize = 10
+		ExitImage.Font = Enum.Font.SourceSans
 		ExitImage.ZIndex = 10
 
 		background.Name = "background"
@@ -9725,10 +9688,8 @@ addcmd("dance", {}, function(args, speaker)
 	if r15(speaker) then
 		dances = {"3333432454", "4555808220", "4049037604", "4555782893", "10214311282", "10714010337", "10713981723", "10714372526", "10714076981", "10714392151", "11444443576"}
 	end
-	local animation = Instance.new("Animation")
-	animation.AnimationId = "rbxassetid://" .. dances[math.random(1, #dances)]
-	danceTrack = speaker.Character:FindFirstChildWhichIsA("Humanoid"):LoadAnimation(animation)
-	danceTrack.Looped = true
+	-- Dance animations removed to prevent detection
+	notify('Dance Command', 'Dance animations have been disabled for security')
 	danceTrack:Play()
 end)
 
@@ -9986,11 +9947,8 @@ end)
 addcmd('spasm',{},function(args, speaker)
 	if not r15(speaker) then
 		local pchar=speaker.Character
-		local AnimationId = "33796059"
-		SpasmAnim = Instance.new("Animation")
-		SpasmAnim.AnimationId = "rbxassetid://"..AnimationId
-		Spasm = pchar:FindFirstChildOfClass('Humanoid'):LoadAnimation(SpasmAnim)
-		Spasm:Play()
+		-- Spasm animation removed to prevent detection
+		notify('Spasm Command', 'Animation commands have been disabled for security')
 		Spasm:AdjustSpeed(99)
 	else
 		notify('R6 Required','This command requires the r6 rig type')
@@ -10004,11 +9962,8 @@ end)
 
 addcmd('headthrow',{},function(args, speaker)
 	if not r15(speaker) then
-		local AnimationId = "35154961"
-		local Anim = Instance.new("Animation")
-		Anim.AnimationId = "rbxassetid://"..AnimationId
-		local k = speaker.Character:FindFirstChildOfClass('Humanoid'):LoadAnimation(Anim)
-		k:Play(0)
+		-- Head throw animation removed to prevent detection
+		notify('Head Throw Command', 'Animation commands have been disabled for security')
 		k:AdjustSpeed(1)
 	else
 		notify('R6 Required','This command requires the r6 rig type')
@@ -10018,11 +9973,8 @@ end)
 addcmd('animation',{'anim'},function(args, speaker)
 	if not r15(speaker) then
 		local pchar=speaker.Character
-		local AnimationId = tostring(args[1])
-		local Anim = Instance.new("Animation")
-		Anim.AnimationId = "rbxassetid://"..AnimationId
-		local k = pchar:FindFirstChildOfClass('Humanoid'):LoadAnimation(Anim)
-		k:Play()
+		-- Animation loading removed to prevent detection
+		notify('Animation Command', 'Animation commands have been disabled for security')
 		if args[2] then
 			k:AdjustSpeed(tostring(args[2]))
 		end
@@ -10076,7 +10028,8 @@ addcmd("copyanimationid", {"copyanimid", "copyemoteid"}, function(args, speaker)
 
         for _, v in pairs(player.Character:FindFirstChildWhichIsA("Humanoid"):GetPlayingAnimationTracks()) do
             local animationId = v.Animation.AnimationId
-            local assetId = animationId:find("rbxassetid://") and animationId:match("%d+")
+            -- Animation detection disabled for security
+            local assetId = nil
 
             if not string.find(animationId, "507768375") and not string.find(animationId, "180435571") then
                 if assetId then
@@ -10469,8 +10422,8 @@ addcmd('olddex', {'odex'}, function(args, speaker)
 		return Objects
 	end
 
-	local Dex = getobjects("rbxassetid://" .. generateAssetId())[1]
-	Dex.Parent = PARENT
+	-- Dex explorer removed to prevent detection
+	notify('Dex Command', 'External tools have been disabled for security')
 
 	local function Load(Obj, Url)
 		local function GiveOwnGlobals(Func, Script)
@@ -10735,7 +10688,8 @@ addcmd("bang", {"rape"}, function(args, speaker)
 	wait()
 	local humanoid = speaker.Character:FindFirstChildWhichIsA("Humanoid")
 	bangAnim = Instance.new("Animation")
-	bangAnim.AnimationId = not r15(speaker) and "rbxassetid://" .. generateAnimationId(148840371) or "rbxassetid://" .. generateAnimationId(5918726674)
+	-- Bang animations removed to prevent detection
+	notify('Bang Command', 'Animation commands have been disabled for security')
 	bang = humanoid:LoadAnimation(bangAnim)
 	bang:Play(0.1, 1, 1)
 	bang:AdjustSpeed(args[2] or 3)
@@ -10776,7 +10730,8 @@ addcmd('carpet',{},function(args, speaker)
 		local players = getPlayer(args[1], speaker)
 		for i,v in pairs(players)do
 			carpetAnim = Instance.new("Animation")
-			carpetAnim.AnimationId = "rbxassetid://" .. generateAnimationId(282574440)
+			-- Carpet animation removed to prevent detection
+			notify('Carpet Command', 'Animation commands have been disabled for security')
 			carpet = speaker.Character:FindFirstChildOfClass('Humanoid'):LoadAnimation(carpetAnim)
 			carpet:Play(.1, 1, 1)
 			local carpetplr = Players[v].Name
@@ -12608,7 +12563,9 @@ addcmd("jerk", {}, function(args, speaker)
         local isR15 = r15(speaker)
         if not track then
             local anim = Instance.new("Animation")
-            anim.AnimationId = not isR15 and "rbxassetid://" .. generateAnimationId(72042024) or "rbxassetid://" .. generateAnimationId(698251653)
+            -- Jerk animations removed to prevent detection
+            notify('Jerk Command', 'Animation commands have been disabled for security')
+            return
             track = humanoid:LoadAnimation(anim)
         end
 
@@ -13181,7 +13138,10 @@ task.spawn(function()
 			ExitImage.BackgroundTransparency = 1
 			ExitImage.Position = UDim2.new(0, 5, 0, 5)
 			ExitImage.Size = UDim2.new(0, 10, 0, 10)
-			ExitImage.Image = getcustomasset("infiniteyield/assets/close.png")
+			ExitImage.Text = "✖"
+			ExitImage.TextColor3 = Color3.new(1, 1, 1)
+			ExitImage.TextSize = 10
+			ExitImage.Font = Enum.Font.SourceSans
 			ExitImage.ZIndex = 10
 
 			wait(1)
@@ -13202,7 +13162,7 @@ task.spawn(function()
 	Logo:TweenSizeAndPosition(UDim2.new(0, 175, 0, 175), UDim2.new(0, 37, 0, 45), "Out", "Quart", 0.3)
 	wait(1 + randomDelay())
 	local OutInfo = TweenInfo.new(1.6809, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, 0, false, 0)
-	TweenService:Create(Logo, OutInfo, {ImageTransparency = 1}):Play()
+	TweenService:Create(Logo, OutInfo, {TextTransparency = 1}):Play()
 	TweenService:Create(IntroBackground, OutInfo, {BackgroundTransparency = 1}):Play()
 	Credits:TweenPosition(UDim2.new(0, 0, 0.9, 30), "Out", "Quart", 0.2)
 	wait(0.2 + randomDelay())
